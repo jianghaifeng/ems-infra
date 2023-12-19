@@ -1,0 +1,115 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata: 
+  name: kafka-pv
+  namespace: ems-infra
+  labels: 
+    pv: kafka-pv
+spec: 
+  accessModes: 
+    - ReadWriteOnce
+  capacity: 
+    storage: 300Gi
+  storageClassName: local-storage
+  local: 
+    path: "/data/kafka-data"
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - kube-node3
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kafka-pvc
+  namespace: ems-infra
+spec:
+  storageClassName: local-storage
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 300Gi
+  selector: 
+    matchLabels: 
+      pv: kafka-pv
+
+---
+
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: kafka-deployment
+  namespace: ems-infra
+  labels:
+    app: kafka
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafka
+  template:
+    metadata:
+      labels:
+        app: kafka
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: kube-node3
+      containers:
+      - name: broker
+        image: docker.io/bitnami/kafka:3.6
+        ports:
+        - containerPort: 9094
+        - containerPort: 9093
+        env:
+        - name: MY_POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: KAFKA_CFG_NODE_ID
+          value: "0"
+        - name: KAFKA_CFG_PROCESS_ROLES
+          value: controller,broker
+        - name: KAFKA_CFG_CONTROLLER_QUORUM_VOTERS
+          value: 0@kafka:9093
+        - name: KAFKA_CFG_LISTENERS
+          value: PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://0.0.0.0:9094
+        - name: KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP
+          value: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
+        - name: KAFKA_CFG_ADVERTISED_LISTENERS
+          value: "PLAINTEXT://:9092,EXTERNAL://$(MY_POD_IP):9094"
+        - name: KAFKA_CFG_CONTROLLER_LISTENER_NAMES
+          value: CONTROLLER
+        - name: KAFKA_CFG_INTER_BROKER_LISTENER_NAME
+          value: PLAINTEXT
+        volumeMounts:
+        - mountPath: /bitnami/
+          name: kafka-data
+      volumes:
+      - name: kafka-data
+        persistentVolumeClaim:
+          claimName: kafka-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka
+  namespace: ems-infra
+spec:
+  selector:
+    app: kafka
+  ports:
+    - name: external
+      protocol: TCP
+      port: 9094
+      targetPort: 9094
+    - name: internal
+      protocol: TCP
+      port: 9093
+      targetPort: 9093

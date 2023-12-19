@@ -1,0 +1,13 @@
+ems:
+  url: http://10.44.20.71:30030
+lark:
+  auth:
+    url: https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal
+    app_id: <>
+    app_secret: <>
+  bitable: bascnRptidxS0LHsJwCQ8HeQIsh
+  departments:
+  - name: department1
+    table: tblr2Zc8sa4Np13O
+  - name: department2
+    table: tblhgW6DdlbzX5Pj

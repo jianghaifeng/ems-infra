@@ -1,0 +1,37 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: lark-worker-pv-prod
+  labels:
+    app: lark-worker
+spec:
+  storageClassName: slow
+  volumeMode: Filesystem
+  persistentVolumeReclaimPolicy: Retain
+  claimRef:
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    name: lark-worker-pv-claim
+    namespace: ems-prod
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  nfs:
+    path: /data/nfs_data/ems-larkworker-data
+    server: 10.44.20.75
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: lark-worker-pv-claim
+  namespace: ems-prod
+spec:
+  storageClassName: slow
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi

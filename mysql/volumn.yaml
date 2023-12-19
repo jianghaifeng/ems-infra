@@ -1,0 +1,38 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: ems-test-database-pv
+  namespace: ems-test
+  labels:
+    app: ems-test-database
+spec:
+  storageClassName: slow
+  volumeMode: Filesystem
+  persistentVolumeReclaimPolicy: Retain
+  claimRef:
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    name: ems-test-database-pv-claim
+    namespace: ems-test
+  capacity:
+    storage: 100Gi
+  accessModes:
+    - ReadWriteOnce
+  nfs:
+    path: /data/nfs_data/ems-test-database
+    server: 10.44.20.75
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ems-test-database-pv-claim
+  namespace: ems-test
+spec:
+  storageClassName: slow
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Gi

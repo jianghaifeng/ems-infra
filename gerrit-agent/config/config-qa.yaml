@@ -1,0 +1,9 @@
+ems:
+  url: http://ems-test:9010/commits
+gerrit:
+  username: <username>
+  password: <password>
+es:
+  url: http://elasticsearch.ems-infra:9200/gerrit-change-requests-test
+  username: <username>
+  password: <password>

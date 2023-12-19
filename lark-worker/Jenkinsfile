@@ -1,0 +1,59 @@
+pipeline {
+    agent  { label 'ems-agent-go' }
+
+    stages {
+        stage('Clone') {
+            steps {
+                checkout scm
+            }
+        }
+        stage('Build') {
+          steps {
+                script {
+                    sh '''
+                        cd lark-worker
+                        go env -w GO111MODULE=on && \
+                        go env -w GOPROXY=https://goproxy.cn,direct && \
+                        go mod download && \
+                        CGO_ENABLED=0 GOOS=linux go build -o lark-worker && \
+                        docker build -t 10.44.20.71:30020/lark-worker:latest .
+                    '''
+                }
+            }
+        }
+        stage('Publish') {
+            steps {
+                script {
+                    sh "docker push 10.44.20.71:30020/lark-worker:latest"
+                }
+            }
+        }
+        stage('deploy test') {
+            agent {label 'ems-agent-kubernetes'}
+            steps {
+                sh "kubectl rollout restart deployment ems-lark-worker -n ems-test"
+                sh "kubectl rollout status deployment ems-lark-worker -n ems-test -w"
+            }
+        }
+        stage('Approve based on environment lead') {
+            agent none
+            input {
+                message 'Deploy to prod Env?'
+                id 'emsApproval'
+                submitter 'Alice, Bob'
+                submitterParameter 'approverId'
+            }
+
+            steps {
+                echo "Deployment approved by ${approverId}."
+            }
+        }
+        stage('deploy prod') {
+            agent {label 'ems-agent-kubernetes'}
+            steps {
+                sh "kubectl rollout restart deployment ems-lark-worker -n ems-prod"
+                sh "kubectl rollout status deployment ems-lark-worker -n ems-prod -w"
+            }
+        }
+    }
+}

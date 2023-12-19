@@ -1,0 +1,57 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: kibana
+  namespace: ems-infra
+  labels:
+    app: kibana
+spec:
+  ports:
+    - port: 5601
+      nodePort: 30001
+  type: NodePort
+  selector:
+    app: kibana
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kibana-config-map
+  namespace: ems-infra
+data:
+  kibana.yml: |
+    server.host: "0.0.0.0"
+    logging.quiet: true
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kibana
+  namespace: ems-infra
+  labels:
+    app: kibana
+spec:
+  selector:
+    matchLabels:
+      app: kibana
+  template:
+    metadata:
+      labels:
+        app: kibana
+    spec:
+      containers:
+        - name: kibana
+          image: kibana:7.17.13
+          env:
+            - name: ELASTICSEARCH_HOSTS
+              value: http://elasticsearch:9200
+          ports:
+            - containerPort: 5601
+          volumeMounts:
+            - name: kibana-config
+              mountPath: /usr/share/kibana/config/kibana.yml
+              subPath: kibana.yml
+      volumes:
+        - name: kibana-config
+          configMap:
+            name: kibana-config-map

@@ -1,0 +1,8 @@
+FROM ubuntu:latest
+
+RUN apt update && apt install -y ca-certificates curl
+WORKDIR /app
+COPY config ./config
+COPY ./lark-worker ./
+
+CMD ["/app/lark-worker"]

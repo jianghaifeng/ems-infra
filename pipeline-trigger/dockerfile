@@ -1,0 +1,8 @@
+FROM 10.44.20.71:30020/ubuntu:latest
+
+WORKDIR /app
+COPY ./pipeline-trigger ./
+
+EXPOSE 8080
+
+CMD ["/app/pipeline-trigger"]

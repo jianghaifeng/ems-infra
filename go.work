@@ -1,0 +1,9 @@
+go 1.20
+
+use (
+	./data-init
+	./gerrit-agent
+	./jira-agent
+	./lark-worker
+	./pipeline-trigger
+)

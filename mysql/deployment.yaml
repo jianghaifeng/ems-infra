@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ems-test-database
+  namespace: ems-test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ems-test-database
+  template:
+    metadata:
+      labels:
+        app: ems-test-database
+    spec:
+      securityContext:
+        fsGroup: 1000
+        runAsUser: 1000
+      containers:
+        - name: ems-test-database
+          image: mysql:8
+          env:
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: db-secret
+                  key: DATABASE_USERNAME
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-secret
+                  key: DATABASE_PASSWORD
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-secret
+                  key: DATABASE_ADMIN_PASSWORD
+            - name: MYSQL_DATABASE
+              value: ems
+          ports:
+            - name: httpport
+              containerPort: 3306
+          volumeMounts:
+            - name: ems-test-db-volume
+              mountPath: /var/lib/mysql
+      volumes:
+        - name: ems-test-db-volume
+          persistentVolumeClaim:
+            claimName: ems-test-database-pv-claim

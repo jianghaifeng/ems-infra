@@ -1,0 +1,4 @@
+.vscode
+data/
+lark-worker/config/config.yaml
+gerrit-agent/config/config.yaml

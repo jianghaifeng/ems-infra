@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ems-jira-agent
+  namespace: ems-test
+spec:
+  selector:
+    app: ems-jira-agent
+  type: NodePort
+  ports:
+    - port: 8080
+      targetPort: 8080
+      nodePort: 30060
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ems-jira-agent
+  namespace: ems-test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ems-jira-agent
+  template:
+    metadata:
+      labels:
+        app: ems-jira-agent
+    spec:
+      containers:
+        - name: ems-jira-agent
+          image: 10.44.20.71:30020/jira-agent
+          env:
+            - name: EMS_ENV
+              value: qa
+          resources:
+            limits:
+              memory: "1200Mi"
+              cpu: "2000m"
+            requests:
+              memory: "500Mi"
+              cpu: "1000m"

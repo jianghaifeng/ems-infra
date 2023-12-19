@@ -1,0 +1,1 @@
+kubectl rollout restart deployment pipeline-trigger -n ems-infra

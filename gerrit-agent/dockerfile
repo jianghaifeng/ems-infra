@@ -1,0 +1,10 @@
+FROM 10.44.20.71:30020/ubuntu:latest
+
+RUN apt update && apt install -y ca-certificates
+WORKDIR /app
+COPY config ./config
+COPY ./gerrit-agent ./
+
+EXPOSE 8080
+
+CMD ["/app/gerrit-agent"]

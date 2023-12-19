@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ems-gerrit-agent
+  namespace: ems-prod
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ems-gerrit-agent
+  template:
+    metadata:
+      labels:
+        app: ems-gerrit-agent
+    spec:
+      containers:
+        - name: ems-gerrit-agent
+          image: 10.44.20.71:30020/gerrit-agent
+          env:
+            - name: EMS_ENV
+              value: prod
+            - name: EMS_GERRIT__USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: gerrit-agent-secret
+                  key: GERRIT_USER
+            - name: EMS_GERRIT__PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: gerrit-agent-secret
+                  key: GERRIT_PWD
+            - name: EMS_ES__USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: gerrit-agent-secret
+                  key: ES_USER
+            - name: EMS_ES__PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: gerrit-agent-secret
+                  key: ES_PWD
+          resources:
+            limits:
+              memory: "1200Mi"
+              cpu: "2000m"
+            requests:
+              memory: "500Mi"
+              cpu: "1000m"

@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ems-lark-worker
+  namespace: ems-prod
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ems-lark-worker
+  template:
+    metadata:
+      labels:
+        app: ems-lark-worker
+    spec:
+      securityContext:
+        fsGroup: 1000
+        runAsUser: 1000
+      containers:
+        - name: ems-lark-worker
+          image: 10.44.20.71:30020/lark-worker
+          env:
+            - name: EMS_ENV
+              value: prod
+            - name: EMS_LARK__AUTH__APP_ID
+              valueFrom:
+                secretKeyRef:
+                  name: lark-worker-secret
+                  key: APP_ID
+            - name: EMS_LARK__AUTH__APP_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: lark-worker-secret
+                  key: APP_SECRET
+            - name: EMS_LARK__TEMPLATE__APP_ID
+              valueFrom:
+                secretKeyRef:
+                  name: lark-worker-secret
+                  key: TEMPLATE_APP_ID
+            - name: EMS_LARK__TEMPLATE__FOLDER_ID
+              valueFrom:
+                secretKeyRef:
+                  name: lark-worker-secret
+                  key: TEMPLATE_FOLDER_ID
+          resources:
+            limits:
+              memory: "800Mi"
+              cpu: "1000m"
+            requests:
+              memory: "500Mi"
+              cpu: "500m"
+          volumeMounts:
+            - name: lark-worker-volume
+              mountPath: /app/data
+      volumes:
+        - name: lark-worker-volume
+          persistentVolumeClaim:
+            claimName: lark-worker-pv-claim

@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pipeline-trigger
+  namespace: ems-infra
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pipeline-trigger
+  template:
+    metadata:
+      labels:
+        app: pipeline-trigger
+    spec:
+      securityContext:
+        fsGroup: 1000
+        runAsUser: 1000
+      containers:
+      - name: pipeline-trigger
+        image: 10.44.20.71:30020/pipeline-trigger
+        ports:
+        - containerPort: 8080
+        env:
+        volumeMounts:
+      volumes:
